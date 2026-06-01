@@ -1,0 +1,304 @@
+/* =========================
+   HEADER
+========================= */
+
+.header{
+
+  background:#222;
+
+  color:white;
+
+  padding:20px;
+
+  border-radius:12px;
+
+  text-align:center;
+
+  margin-bottom:20px;
+
+}
+
+.header h1{
+
+  margin:0;
+
+}
+
+.sub{
+
+  opacity:.8;
+
+  margin-top:5px;
+
+}
+
+/* =========================
+   STATISTICHE
+========================= */
+
+.stats{
+
+  display:flex;
+
+  gap:15px;
+
+  margin:20px 0;
+
+  flex-wrap:wrap;
+
+}
+
+.stat{
+
+  flex:1;
+
+  min-width:170px;
+
+  background:white;
+
+  padding:15px;
+
+  border-radius:12px;
+
+  text-align:center;
+
+  font-size:18px;
+
+  font-weight:bold;
+
+  box-shadow:
+    0 3px 10px rgba(0,0,0,.12);
+
+  transition:.2s;
+
+}
+
+.stat:hover{
+
+  transform:translateY(-3px);
+
+}
+
+.stat span{
+
+  display:block;
+
+  margin-top:8px;
+
+  font-size:28px;
+
+}
+
+.stat.nuovo{
+
+  border-left:8px solid #e63946;
+
+}
+
+.stat.prep{
+
+  border-left:8px solid #f4a261;
+
+}
+
+.stat.tot{
+
+  border-left:8px solid #2a9d8f;
+
+}
+
+.stat.cash{
+
+  border-left:8px solid #2a9d8f;
+
+}
+
+.stat.top{
+
+  border-left:8px solid #457b9d;
+
+}
+
+/* =========================
+   ORDINI
+========================= */
+
+.ordine{
+
+  background:white;
+
+  border-radius:12px;
+
+  padding:20px;
+
+  margin-bottom:15px;
+
+  box-shadow:
+    0 3px 10px rgba(0,0,0,.12);
+
+}
+
+.ordine.nuovo{
+
+  border-left:8px solid #e63946;
+
+  animation:
+    lampeggia 1s infinite;
+
+}
+
+.ordine.preparazione{
+
+  border-left:8px solid #f4a261;
+
+  background:#fff3e0;
+
+}
+
+@keyframes lampeggia{
+
+  0%{
+
+    background:#fff;
+
+  }
+
+  50%{
+
+    background:#ffe5e5;
+
+  }
+
+  100%{
+
+    background:#fff;
+
+  }
+
+}
+
+h2{
+
+  margin-top:0;
+
+}
+
+pre{
+
+  white-space:pre-wrap;
+
+  font-size:15px;
+
+  line-height:1.4;
+
+}
+
+/* =========================
+   PULSANTI
+========================= */
+
+.actions{
+
+  display:flex;
+
+  gap:10px;
+
+  margin-top:10px;
+
+}
+
+button{
+
+  padding:10px 15px;
+
+  border:none;
+
+  border-radius:8px;
+
+  cursor:pointer;
+
+  font-weight:bold;
+
+  transition:.2s;
+
+}
+
+button:hover{
+
+  transform:translateY(-2px);
+
+}
+
+.btn-prep{
+
+  background:#f4a261;
+
+  color:white;
+
+}
+
+.btn-done{
+
+  background:#2a9d8f;
+
+  color:white;
+
+}
+
+/* =========================
+   BADGE
+========================= */
+
+.badge{
+
+  display:inline-block;
+
+  padding:6px 12px;
+
+  border-radius:20px;
+
+  color:white;
+
+  font-size:12px;
+
+  font-weight:bold;
+
+  margin-bottom:10px;
+
+}
+
+.badge-new{
+
+  background:#e63946;
+
+}
+
+.badge-prep{
+
+  background:#f4a261;
+
+}
+
+/* =========================
+   TOTALE ORDINE
+========================= */
+
+.totale{
+
+  font-size:24px;
+
+  font-weight:bold;
+
+  color:#2a9d8f;
+
+  margin:10px 0;
+
+}
+
+.btn-print{
+
+  background:#457b9d;
+
+  color:white;
+
+}

@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Cucina Country Side</title>
+
+<style>
+
+body{
+  font-family: Arial, sans-serif;
+  background:#f4f4f4;
+  margin:20px;
+}
+
+h1{
+  text-align:center;
+}
+
+.ordine{
+
+  background:white;
+
+  border-radius:10px;
+
+  padding:15px;
+
+  margin-bottom:15px;
+
+  box-shadow:
+    0 2px 8px rgba(0,0,0,.15);
+
+}
+
+.nuovo{
+  border-left:8px solid #e63946;
+}
+
+.preparazione{
+  border-left:8px solid #f4a261;
+}
+
+h2{
+  margin-top:0;
+}
+
+pre{
+
+  white-space:pre-wrap;
+
+  font-size:15px;
+
+  line-height:1.4;
+
+}
+
+.actions{
+
+  display:flex;
+
+  gap:10px;
+
+  margin-top:10px;
+
+}
+
+button{
+
+  padding:10px 15px;
+
+  border:none;
+
+  border-radius:6px;
+
+  cursor:pointer;
+
+  font-weight:bold;
+
+}
+
+.btn-prep{
+  background:#f4a261;
+}
+
+.btn-done{
+  background:#2a9d8f;
+  color:white;
+}
+
+</style>
+
+</head>
+
+<body>
+<div class="header">
+
+  <h1>
+    🍔 COUNTRY SIDE
+  </h1>
+
+  <div class="sub">
+
+    Dashboard Cucina
+
+  </div>
+
+</div>
+
+<div id="stats" class="stats">
+
+  <div class="stat nuovo">
+    🔴 Nuovi
+    <span id="countNuovi">0</span>
+  </div>
+
+  <div class="stat prep">
+    🟠 Preparazione
+    <span id="countPrep">0</span>
+  </div>
+
+  <div class="stat tot">
+    📋 Totali
+    <span id="countTotali">0</span>
+  </div>
+
+  <div class="stat cash">
+    💰 Incasso
+    <span id="countIncasso">€0.00</span>
+  </div>
+
+  <div class="stat top">
+    🏆 Top Venduto
+    <span id="topProdotto">-</span>
+  </div>
+
+</div>
+
+</div>
+
+<div id="ordini"></div>
+
+<hr>
+
+<h2>📚 Storico Oggi</h2>
+
+<div id="storico"></div>
+
+<script>
+
+let ultimoOrdine = 0;
+
+async function caricaOrdini(){
+
+  try{
+
+    const res =
+      await fetch("/api/ordini");
+
+    const dati =
+      await res.json();
+
+      console.log(dati);
+
+      let nuovi = 0;
+let preparazione = 0;
+
+dati.forEach(o => {
+
+  if(o.stato === "nuovo"){
+    nuovi++;
+  }
+
+  if(o.stato === "preparazione"){
+    preparazione++;
+  }
+
+});
+
+    if(
+      dati.length &&
+      dati[0].id > ultimoOrdine
+    ){
+
+      if(ultimoOrdine !== 0){
+
+        const audio =
+          new Audio("ding.mp3");
+
+        audio.play();
+
+      }
+
+      ultimoOrdine =
+        dati[0].id;
+
+    }
+
+    let html = "";
+
+    dati.forEach(o=>{
+
+      const ordine =
+        JSON.parse(o.ordine);
+
+let badge = "";
+
+if(o.stato === "nuovo"){
+
+  badge =
+    '<span class="badge badge-new">🔴 NUOVO</span>';
+
+}
+
+if(o.stato === "preparazione"){
+
+  badge =
+    '<span class="badge badge-prep">🟠 PREPARAZIONE</span>';
+
+}
+
+html += `
+
+<div class="ordine ${o.stato}">
+
+  ${badge}
+
+  <h2>
+    🍔 COMANDA #${o.id}
+  </h2>
+
+  <p>
+    🕐 ${
+      new Date(
+        ordine.data
+      ).toLocaleString("it-IT")
+    }
+  </p>
+
+  ${
+    ordine.totale
+      ? `<p class="totale">💰 €${parseFloat(ordine.totale).toFixed(2)}</p>`
+      : ""
+  }
+
+  <pre>
+${ordine.messaggio}
+  </pre>
+
+<div class="actions">
+
+  <button
+    onclick="
+      ristampaOrdine(
+        ${o.id}
+      )
+    "
+  >
+    🖨️ Stampa
+  </button>
+
+  <button
+    class="btn-prep"
+    onclick="
+      cambiaStato(
+        ${o.id},
+        'preparazione'
+      )
+    "
+  >
+    👨‍🍳 In preparazione
+  </button>
+
+  <button
+    class="btn-done"
+    onclick="
+      cambiaStato(
+        ${o.id},
+        'consegnato'
+      )
+    "
+  >
+    ✅ Consegnato
+  </button>
+
+</div>
+
+`;
+
+    });
+
+    document.getElementById(
+  "countNuovi"
+).innerText = nuovi;
+
+document.getElementById(
+  "countPrep"
+).innerText = preparazione;
+
+document.getElementById(
+  "countTotali"
+).innerText = dati.length;
+
+    document.getElementById("ordini")
+      .innerHTML = html;
+
+  }catch(err){
+
+    console.error(err);
+
+  }
+
+}
+
+async function caricaStorico(){
+
+  const res =
+    await fetch(
+      "/api/ordini/storico"
+    );
+
+  const dati =
+    await res.json();
+
+  let html = "";
+
+  dati.forEach(o=>{
+
+    const ordine =
+      JSON.parse(o.ordine);
+
+html += `
+  <div class="ordine">
+
+    <h3>
+      ✅ Ordine #${o.id}
+    </h3>
+
+        <p>
+      🕐 ${
+        new Date(
+          ordine.data
+        ).toLocaleString("it-IT")
+      }
+    </p>
+
+    <pre>
+${ordine.messaggio}
+    </pre>
+
+    <div class="actions">
+
+      <button
+        onclick="ristampaOrdine(${o.id})"
+      >
+        🖨️ Ristampa
+      </button>
+
+    </div>
+
+  </div>
+`;
+
+  });
+
+  document.getElementById(
+    "storico"
+  ).innerHTML = html;
+
+}
+
+function ristampaOrdine(id){
+
+  fetch(`/api/ordini/${id}`)
+
+    .then(r => r.json())
+
+    .then(ordine => {
+
+      if(!ordine) return;
+
+      const dati =
+        JSON.parse(
+          ordine.ordine
+        );
+
+      const win =
+        window.open(
+          "",
+          "_blank"
+        );
+
+      win.document.write(`
+        <html>
+        <head>
+          <title>
+            Comanda #${id}
+          </title>
+        </head>
+        <body>
+          <pre>
+${dati.messaggio}
+          </pre>
+        </body>
+        </html>
+      `);
+
+      win.document.close();
+
+      win.print();
+
+    });
+
+}
+
+async function caricaStatistiche(){
+
+  try{
+
+    const res =
+      await fetch(
+        "/api/statistiche"
+      );
+
+    const s =
+      await res.json();
+
+    document.getElementById(
+      "countNuovi"
+    ).innerText =
+      s.nuovi;
+
+    document.getElementById(
+      "countPrep"
+    ).innerText =
+      s.preparazione;
+
+    document.getElementById(
+      "countTotali"
+    ).innerText =
+      s.totale;
+
+    document.getElementById(
+      "countIncasso"
+    ).innerText =
+      "€" + s.incasso;
+
+  }catch(err){
+
+    console.error(err);
+
+  }
+
+}
+
+async function caricaTopProdotto(){
+
+  try{
+
+    const res =
+      await fetch(
+        "/api/prodotti/top"
+      );
+
+    const dati =
+      await res.json();
+
+    if(dati.length){
+
+      document.getElementById(
+        "topProdotto"
+      ).innerHTML =
+        `${dati[0][0]}<br>${dati[0][1]}x`;
+
+    }else{
+
+      document.getElementById(
+        "topProdotto"
+      ).innerText = "-";
+
+    }
+
+  }catch(err){
+
+    console.error(err);
+
+  }
+
+}
+
+async function cambiaStato(
+  id,
+  stato
+){
+
+  try{
+
+    await fetch(
+      `/api/ordini/${id}/stato`,
+      {
+        method:"PUT",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          stato
+        })
+      }
+    );
+
+    caricaOrdini();
+
+  }catch(err){
+
+    console.error(err);
+
+  }
+
+}
+
+caricaOrdini();
+caricaStorico();
+caricaStatistiche();
+caricaTopProdotto();
+
+setInterval(() => {
+
+  caricaOrdini();
+
+  caricaStorico();
+
+  caricaStatistiche();
+
+  caricaTopProdotto();
+
+}, 3000);
+
+</script>
+
+</body>
+</html>
