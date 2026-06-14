@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
+const session = require("express-session");
 
 const app = express();
 
@@ -9,10 +10,35 @@ app.use(cors());
 app.use(express.json());
 
 app.use(
+  session({
+    secret: "CountrySideSuperSecret2026",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 12
+    }
+  })
+);
+
+app.use(
   express.static(
     path.join(__dirname, "public")
   )
 );
+
+function auth(req,res,next){
+
+  if(req.session.auth){
+
+    return next();
+
+  }
+
+  return res.status(401).json({
+    error:"Non autorizzato"
+  });
+
+}
 
 const db =
   new sqlite3.Database("database.db");
@@ -29,6 +55,47 @@ db.serialize(() => {
       ordine TEXT
     )
   `);
+
+});
+
+app.post("/api/login",(req,res)=>{
+
+  const password =
+    req.body.password;
+
+  if(password === "CountrySide2026"){
+
+    req.session.auth = true;
+
+    return res.json({
+      success:true
+    });
+
+  }
+
+  return res.status(401).json({
+    success:false
+  });
+
+});
+
+app.post("/api/logout",(req,res)=>{
+
+  req.session.destroy(()=>{
+
+    res.json({
+      success:true
+    });
+
+  });
+
+});
+
+app.get("/api/check-auth",(req,res)=>{
+
+  res.json({
+    auth: !!req.session.auth
+  });
 
 });
 
@@ -87,15 +154,15 @@ const ordine = {
 
 /* ELENCO ORDINI */
 
-app.get("/api/ordini", (req,res)=>{
+app.get("/api/ordini",auth, (req,res)=>{
 
   db.all(
     `
-  SELECT *
-FROM ordini
-WHERE stato <> 'consegnato'
-AND DATE(data) = DATE('now','localtime')
-ORDER BY id DESC
+ SELECT *
+    FROM ordini
+    WHERE stato <> 'consegnato'
+    AND DATE(data) = DATE('now','localtime')
+    ORDER BY id DESC
     `,
     [],
     (err,rows)=>{
@@ -146,7 +213,7 @@ app.put("/api/ordini/:id/stato", (req,res)=>{
 
 });
 
-app.get("/api/statistiche", (req,res)=>{
+app.get("/api/statistiche",auth, (req,res)=>{
 
   db.all(
     `
@@ -213,7 +280,7 @@ WHERE DATE(data)=DATE('now','localtime')
 
 });
 
-app.get("/api/prodotti/top", (req,res)=>{
+app.get("/api/prodotti/top",auth, (req,res)=>{
 
   db.all(
     `
@@ -272,7 +339,7 @@ WHERE DATE(data)=DATE('now','localtime')
 
 });
 
-app.get("/api/ordini/storico", (req,res)=>{
+app.get("/api/ordini/storico",auth, (req,res)=>{
 
   db.all(
     `
@@ -298,7 +365,7 @@ ORDER BY id DESC
 
 });
 
-app.get("/api/ordini/:id", (req,res)=>{
+app.get("/api/ordini/:id",auth, (req,res)=>{
 
   db.get(
     `
@@ -322,7 +389,7 @@ app.get("/api/ordini/:id", (req,res)=>{
 
 });
 
-app.get("/api/statistiche/settimana", (req,res)=>{
+app.get("/api/statistiche/settimana",auth, (req,res)=>{
 
   db.all(
     `
@@ -387,7 +454,7 @@ app.get("/api/statistiche/settimana", (req,res)=>{
 
 });
 
-app.get("/api/statistiche/mese", (req,res)=>{
+app.get("/api/statistiche/mese",auth, (req,res)=>{
 
   db.all(
     `
@@ -452,7 +519,7 @@ app.get("/api/statistiche/mese", (req,res)=>{
 
 });
 
-app.get("/api/ordini/tutti", (req,res)=>{
+app.get("/api/ordini/tutti",auth, (req,res)=>{
 
   db.all(
     `
@@ -474,7 +541,7 @@ app.get("/api/ordini/tutti", (req,res)=>{
 
 });
 
-app.get("/api/prodotti/top/settimana", (req,res)=>{
+app.get("/api/prodotti/top/settimana",auth, (req,res)=>{
 
   db.all(
     `
@@ -531,7 +598,7 @@ app.get("/api/prodotti/top/settimana", (req,res)=>{
 
 });
 
-app.get("/api/prodotti/top/mese", (req,res)=>{
+app.get("/api/prodotti/top/mese",auth, (req,res)=>{
 
   db.all(
     `
@@ -588,7 +655,7 @@ app.get("/api/prodotti/top/mese", (req,res)=>{
 
 });
 
-app.get("/api/incassi/giornalieri", (req,res)=>{
+app.get("/api/incassi/giornalieri",auth, (req,res)=>{
 
   db.all(
     `
