@@ -224,7 +224,7 @@ app.get("/api/ordini",auth, (req,res)=>{
 
 /* CAMBIO STATO */
 
-app.put("/api/ordini/:id/stato", (req,res)=>{
+app.put("/api/ordini/:id/stato",auth, (req,res)=>{
 
   db.run(
     `
