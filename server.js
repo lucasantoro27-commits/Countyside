@@ -91,10 +91,11 @@ app.get("/api/ordini", (req,res)=>{
 
   db.all(
     `
-    SELECT *
-    FROM ordini
-    WHERE stato <> 'consegnato'
-    ORDER BY id DESC
+  SELECT *
+FROM ordini
+WHERE stato = 'consegnato'
+AND DATE(data) = DATE('now','localtime')
+ORDER BY id DESC
     `,
     [],
     (err,rows)=>{
@@ -149,8 +150,9 @@ app.get("/api/statistiche", (req,res)=>{
 
   db.all(
     `
-    SELECT *
-    FROM ordini
+SELECT *
+FROM ordini
+WHERE DATE(data)=DATE('now','localtime')
     `,
     [],
     (err,rows)=>{
@@ -215,8 +217,9 @@ app.get("/api/prodotti/top", (req,res)=>{
 
   db.all(
     `
-    SELECT *
-    FROM ordini
+SELECT *
+FROM ordini
+WHERE DATE(data)=DATE('now','localtime')
     `,
     [],
     (err,rows)=>{
@@ -273,10 +276,11 @@ app.get("/api/ordini/storico", (req,res)=>{
 
   db.all(
     `
-    SELECT *
-    FROM ordini
-    WHERE stato = 'consegnato'
-    ORDER BY id DESC
+SELECT *
+FROM ordini
+WHERE stato='consegnato'
+AND DATE(data)=DATE('now','localtime')
+ORDER BY id DESC
     `,
     [],
     (err,rows)=>{
@@ -312,6 +316,322 @@ app.get("/api/ordini/:id", (req,res)=>{
       }
 
       res.json(row);
+
+    }
+  );
+
+});
+
+app.get("/api/statistiche/settimana", (req,res)=>{
+
+  db.all(
+    `
+    SELECT *
+    FROM ordini
+    WHERE DATE(data)
+    BETWEEN DATE('now','-6 days','localtime')
+    AND DATE('now','localtime')
+    `,
+    [],
+    (err,rows)=>{
+
+      if(err){
+        return res.status(500).json(err);
+      }
+
+      let nuovi = 0;
+      let preparazione = 0;
+      let consegnati = 0;
+      let incasso = 0;
+
+      rows.forEach(r=>{
+
+        if(r.stato === "nuovo")
+          nuovi++;
+
+        if(r.stato === "preparazione")
+          preparazione++;
+
+        if(r.stato === "consegnato")
+          consegnati++;
+
+        try{
+
+          const ordine =
+            JSON.parse(r.ordine);
+
+          incasso +=
+            parseFloat(
+              ordine.totale || 0
+            );
+
+        }catch(e){}
+
+      });
+
+      res.json({
+
+        nuovi,
+        preparazione,
+        consegnati,
+
+        totale: rows.length,
+
+        incasso:
+          incasso.toFixed(2)
+
+      });
+
+    }
+  );
+
+});
+
+app.get("/api/statistiche/mese", (req,res)=>{
+
+  db.all(
+    `
+    SELECT *
+    FROM ordini
+    WHERE strftime('%Y-%m', data)
+    =
+    strftime('%Y-%m', 'now', 'localtime')
+    `,
+    [],
+    (err,rows)=>{
+
+      if(err){
+        return res.status(500).json(err);
+      }
+
+      let nuovi = 0;
+      let preparazione = 0;
+      let consegnati = 0;
+      let incasso = 0;
+
+      rows.forEach(r=>{
+
+        if(r.stato === "nuovo")
+          nuovi++;
+
+        if(r.stato === "preparazione")
+          preparazione++;
+
+        if(r.stato === "consegnato")
+          consegnati++;
+
+        try{
+
+          const ordine =
+            JSON.parse(r.ordine);
+
+          incasso +=
+            parseFloat(
+              ordine.totale || 0
+            );
+
+        }catch(e){}
+
+      });
+
+      res.json({
+
+        nuovi,
+        preparazione,
+        consegnati,
+
+        totale: rows.length,
+
+        incasso:
+          incasso.toFixed(2)
+
+      });
+
+    }
+  );
+
+});
+
+app.get("/api/ordini/tutti", (req,res)=>{
+
+  db.all(
+    `
+    SELECT *
+    FROM ordini
+    ORDER BY id DESC
+    `,
+    [],
+    (err,rows)=>{
+
+      if(err){
+        return res.status(500).json(err);
+      }
+
+      res.json(rows);
+
+    }
+  );
+
+});
+
+app.get("/api/prodotti/top/settimana", (req,res)=>{
+
+  db.all(
+    `
+    SELECT *
+    FROM ordini
+    WHERE DATE(data)
+    BETWEEN DATE('now','-6 days','localtime')
+    AND DATE('now','localtime')
+    `,
+    [],
+    (err,rows)=>{
+
+      if(err){
+        return res.status(500).json(err);
+      }
+
+      const prodotti = {};
+
+      rows.forEach(r=>{
+
+        try{
+
+          const ordine =
+            JSON.parse(r.ordine);
+
+          const carrello =
+            ordine.carrello || {};
+
+          Object.values(carrello)
+            .forEach(item=>{
+
+              if(!prodotti[item.nome]){
+
+                prodotti[item.nome] = 0;
+
+              }
+
+              prodotti[item.nome] += item.qty;
+
+            });
+
+        }catch(e){}
+
+      });
+
+      const classifica =
+        Object.entries(prodotti)
+        .sort((a,b)=>b[1]-a[1]);
+
+      res.json(classifica);
+
+    }
+  );
+
+});
+
+app.get("/api/prodotti/top/mese", (req,res)=>{
+
+  db.all(
+    `
+    SELECT *
+    FROM ordini
+    WHERE strftime('%Y-%m', data)
+    =
+    strftime('%Y-%m', 'now', 'localtime')
+    `,
+    [],
+    (err,rows)=>{
+
+      if(err){
+        return res.status(500).json(err);
+      }
+
+      const prodotti = {};
+
+      rows.forEach(r=>{
+
+        try{
+
+          const ordine =
+            JSON.parse(r.ordine);
+
+          const carrello =
+            ordine.carrello || {};
+
+          Object.values(carrello)
+            .forEach(item=>{
+
+              if(!prodotti[item.nome]){
+
+                prodotti[item.nome] = 0;
+
+              }
+
+              prodotti[item.nome] += item.qty;
+
+            });
+
+        }catch(e){}
+
+      });
+
+      const classifica =
+        Object.entries(prodotti)
+        .sort((a,b)=>b[1]-a[1]);
+
+      res.json(classifica);
+
+    }
+  );
+
+});
+
+app.get("/api/incassi/giornalieri", (req,res)=>{
+
+  db.all(
+    `
+    SELECT *
+    FROM ordini
+    WHERE stato='consegnato'
+    ORDER BY data ASC
+    `,
+    [],
+    (err,rows)=>{
+
+      if(err){
+        return res.status(500).json(err);
+      }
+
+      const giorni = {};
+
+      rows.forEach(r=>{
+
+        try{
+
+          const ordine =
+            JSON.parse(r.ordine);
+
+          const giorno =
+            r.data.substring(0,10);
+
+          if(!giorni[giorno]){
+
+            giorni[giorno] = 0;
+
+          }
+
+          giorni[giorno] +=
+            parseFloat(
+              ordine.totale || 0
+            );
+
+        }catch(e){}
+
+      });
+
+      res.json(giorni);
 
     }
   );
