@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Country Side Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:20px;background:#f4f4f4;font-family:Arial,sans-serif}
+.header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;margin:20px 0}
+.card,.chart-box,.filtro{background:white;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.big{font-size:28px;font-weight:bold}
+.btn{padding:10px 15px;border:none;border-radius:8px;cursor:pointer;font-weight:bold}
+.primary{background:#2a9d8f;color:white}
+.danger{background:#e63946;color:white}
+table{width:100%;border-collapse:collapse;background:white}
+th,td{border:1px solid #ddd;padding:10px}
+th{background:#2a9d8f;color:white}
+</style>
+</head>
+<body>
+
+<script>
+if(localStorage.getItem("admin")!=="ok"){
+ location.href="login.html";
+}
+</script>
+
+<div class="header">
+<h1>🍔 Country Side Admin</h1>
+<div>
+<button class="btn primary" onclick="window.open('cucina.html')">🍔 Cucina</button>
+<button class="btn danger" onclick="logout()">🚪 Logout</button>
+</div>
+</div>
+
+<div class="cards">
+<div class="card"><h3>💰 Incasso Oggi</h3><div id="oggi" class="big">€0.00</div></div>
+<div class="card"><h3>📅 Incasso Settimana</h3><div id="settimana" class="big">€0.00</div></div>
+<div class="card"><h3>📆 Incasso Mese</h3><div id="mese" class="big">€0.00</div></div>
+<div class="card"><h3>📋 Ordini Oggi</h3><div id="ordiniOggi" class="big">0</div></div>
+<div class="card"><h3>🏆 Top Settimana</h3><div id="topSett">-</div></div>
+<div class="card"><h3>🏆 Top Mese</h3><div id="topMese">-</div></div>
+</div>
+
+<div class="chart-box">
+<h2>📈 Andamento Incassi</h2>
+<canvas id="grafico"></canvas>
+</div>
+
+<div class="filtro">
+<h2>🔍 Ricerca Ordini</h2>
+<input type="date" id="dataDa">
+<input type="date" id="dataA">
+<button class="btn primary" onclick="filtraStorico()">Cerca</button>
+<button class="btn" onclick="caricaStorico()">Reset</button>
+</div>
+
+<h2>📚 Storico Completo</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Data</th>
+<th>Totale</th>
+<th>Stato</th>
+<th>Azione</th>
+</tr>
+</thead>
+<tbody id="storico"></tbody>
+</table>
+
+<script>
+function logout(){
+ localStorage.removeItem("admin");
+ location.href="login.html";
+}
+
+async function caricaDashboard(){
+ const oggi=await fetch("/api/statistiche").then(r=>r.json());
+ const settimana=await fetch("/api/statistiche/settimana").then(r=>r.json());
+ const mese=await fetch("/api/statistiche/mese").then(r=>r.json());
+ const topSett=await fetch("/api/prodotti/top/settimana").then(r=>r.json());
+ const topMese=await fetch("/api/prodotti/top/mese").then(r=>r.json());
+
+ document.getElementById("oggi").innerText="€"+oggi.incasso;
+ document.getElementById("settimana").innerText="€"+settimana.incasso;
+ document.getElementById("mese").innerText="€"+mese.incasso;
+ document.getElementById("ordiniOggi").innerText=oggi.totale;
+
+ if(topSett.length) document.getElementById("topSett").innerHTML=topSett[0][0]+"<br>"+topSett[0][1]+"x";
+ if(topMese.length) document.getElementById("topMese").innerHTML=topMese[0][0]+"<br>"+topMese[0][1]+"x";
+}
+
+async function caricaStorico(){
+ const dati=await fetch("/api/ordini/tutti").then(r=>r.json());
+ renderStorico(dati);
+}
+
+function renderStorico(dati){
+ let html="";
+ dati.forEach(o=>{
+  const ordine=JSON.parse(o.ordine);
+  html+=`<tr>
+  <td>${o.id}</td>
+  <td>${new Date(ordine.data).toLocaleString("it-IT")}</td>
+  <td>€${parseFloat(ordine.totale||0).toFixed(2)}</td>
+  <td>${o.stato}</td>
+  <td><button class="btn primary" onclick="ristampa(${o.id})">🖨️</button></td>
+  </tr>`;
+ });
+ document.getElementById("storico").innerHTML=html;
+}
+
+async function ristampa(id){
+ const ordine=await fetch(`/api/ordini/${id}`).then(r=>r.json());
+ const dati=JSON.parse(ordine.ordine);
+ const win=window.open("","_blank");
+ win.document.write(`<pre>${dati.messaggio}</pre>`);
+ win.document.close();
+ win.print();
+}
+
+async function filtraStorico(){
+ const dati=await fetch("/api/ordini/tutti").then(r=>r.json());
+ const da=document.getElementById("dataDa").value;
+ const a=document.getElementById("dataA").value;
+
+ const filtrati=dati.filter(o=>{
+  const ordine=JSON.parse(o.ordine);
+  const data=ordine.data.substring(0,10);
+  if(da && data<da) return false;
+  if(a && data>a) return false;
+  return true;
+ });
+ renderStorico(filtrati);
+}
+
+async function caricaGrafico(){
+ const dati=await fetch("/api/incassi/giornalieri").then(r=>r.json());
+ new Chart(document.getElementById("grafico"),{
+  type:"line",
+  data:{
+   labels:Object.keys(dati),
+   datasets:[{label:"Incasso",data:Object.values(dati)}]
+  }
+ });
+}
+
+caricaDashboard();
+caricaStorico();
+caricaGrafico();
+setInterval(caricaDashboard,10000);
+</script>
+
+</body>
+</html>
