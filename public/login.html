@@ -63,30 +63,49 @@ Accedi
 
 <script>
 
-function login(){
+async function login(){
 
-  const pwd =
+  const password =
     document.getElementById(
       "password"
     ).value;
 
-  if(
-    pwd === "CountrySide2026"
-  ){
+  try{
 
-    localStorage.setItem(
-      "admin",
-      "ok"
-    );
+    const res =
+      await fetch(
+        "/api/login",
+        {
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({
+            password
+          })
+        }
+      );
 
-    location.href =
-      "admin.html";
+    if(res.ok){
 
-  }else{
+      location.href =
+        "admin.html";
+
+    }else{
+
+      alert(
+        "Password errata"
+      );
+
+    }
+
+  }catch(err){
 
     alert(
-      "Password errata"
+      "Errore di connessione"
     );
+
+    console.error(err);
 
   }
 
