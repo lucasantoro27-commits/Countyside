@@ -8,16 +8,21 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.set("trust proxy", 1);
 
+
+
+app.set("trust proxy", 1);
 
 app.use(
   session({
     secret: "CountrySideSuperSecret2026",
     resave: false,
     saveUninitialized: false,
+    proxy: true,
     cookie: {
-      maxAge: 1000 * 60 * 60 * 12
+      maxAge: 1000 * 60 * 60 * 12,
+      sameSite: "lax",
+      secure: false
     }
   })
 );
