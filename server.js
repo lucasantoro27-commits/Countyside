@@ -28,6 +28,47 @@ app.use(
 
 function auth(req,res,next){
 
+  app.post("/api/login",(req,res)=>{
+
+  const password =
+    req.body.password;
+
+  if(password === "CountrySide2026"){
+
+    req.session.auth = true;
+
+    return res.json({
+      success:true
+    });
+
+  }
+
+  return res.status(401).json({
+    success:false
+  });
+
+});
+
+app.post("/api/logout",(req,res)=>{
+
+  req.session.destroy(()=>{
+
+    res.json({
+      success:true
+    });
+
+  });
+
+});
+
+app.get("/api/check-auth",(req,res)=>{
+
+  res.json({
+    auth: !!req.session.auth
+  });
+
+});
+
   if(req.session.auth){
 
     return next();
