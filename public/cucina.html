@@ -94,24 +94,89 @@ button{
 </head>
 
 <body>
+
+  <script>
+
+async function checkAuth(){
+
+  try{
+
+    const res =
+      await fetch(
+        "/api/check-auth"
+      );
+
+    if(!res.ok){
+
+      location.href =
+        "login.html";
+
+      return;
+
+    }
+
+    const dati =
+      await res.json();
+
+    if(!dati.auth){
+
+      location.href =
+        "login.html";
+
+    }
+
+  }catch(err){
+
+    location.href =
+      "login.html";
+
+  }
+
+}
+
+checkAuth();
+
+</script>
+
 <div class="header">
 
-  <div style="margin-bottom:15px">
+<div
+style="
+display:flex;
+gap:10px;
+margin-bottom:15px;
+"
+>
 
-  <button
-    onclick="location.href='admin.html'"
-    style="
-      background:#264653;
-      color:white;
-      padding:10px 15px;
-      border:none;
-      border-radius:8px;
-      cursor:pointer;
-      font-weight:bold;
-    "
-  >
-    ⬅️ Torna alla Dashboard
-  </button>
+<button
+onclick="location.href='admin.html'"
+style="
+background:#264653;
+color:white;
+padding:10px 15px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+"
+>
+⬅️ Dashboard
+</button>
+
+<button
+onclick="logout()"
+style="
+background:#e63946;
+color:white;
+padding:10px 15px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+"
+>
+🚪 Logout
+</button>
 
 </div>
 
@@ -168,17 +233,40 @@ button{
 
 <script>
 
+async function logout(){
+
+  await fetch(
+    "/api/logout",
+    {
+      method:"POST"
+    }
+  );
+
+  location.href =
+    "login.html";
+
+}
+
 let ultimoOrdine = 0;
 
 async function caricaOrdini(){
 
   try{
 
-    const res =
-      await fetch("/api/ordini");
+const res =
+  await fetch("/api/ordini");
 
-    const dati =
-      await res.json();
+if(res.status === 401){
+
+  location.href =
+    "login.html";
+
+  return;
+
+}
+
+const dati =
+  await res.json();
 
       console.log(dati);
 
@@ -334,13 +422,22 @@ document.getElementById(
 
 async function caricaStorico(){
 
-  const res =
-    await fetch(
-      "/api/ordini/storico"
-    );
+const res =
+  await fetch(
+    "/api/ordini/storico"
+  );
 
-  const dati =
-    await res.json();
+if(res.status === 401){
+
+  location.href =
+    "login.html";
+
+  return;
+
+}
+
+const dati =
+  await res.json();
 
   let html = "";
 
@@ -437,13 +534,22 @@ async function caricaStatistiche(){
 
   try{
 
-    const res =
-      await fetch(
-        "/api/statistiche"
-      );
+const res =
+  await fetch(
+    "/api/statistiche"
+  );
 
-    const s =
-      await res.json();
+if(res.status === 401){
+
+  location.href =
+    "login.html";
+
+  return;
+
+}
+
+const s =
+  await res.json();
 
     document.getElementById(
       "countNuovi"
@@ -477,13 +583,22 @@ async function caricaTopProdotto(){
 
   try{
 
-    const res =
-      await fetch(
-        "/api/prodotti/top"
-      );
+const res =
+  await fetch(
+    "/api/prodotti/top"
+  );
 
-    const dati =
-      await res.json();
+if(res.status === 401){
+
+  location.href =
+    "login.html";
+
+  return;
+
+}
+
+const dati =
+  await res.json();
 
     if(dati.length){
 

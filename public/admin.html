@@ -23,9 +23,46 @@ th{background:#2a9d8f;color:white}
 <body>
 
 <script>
-if(localStorage.getItem("admin")!=="ok"){
- location.href="login.html";
+
+async function checkAuth(){
+
+  try{
+
+    const res =
+      await fetch(
+        "/api/check-auth"
+      );
+
+    if(!res.ok){
+
+      location.href =
+        "login.html";
+
+      return;
+
+    }
+
+    const dati =
+      await res.json();
+
+    if(!dati.auth){
+
+      location.href =
+        "login.html";
+
+    }
+
+  }catch(err){
+
+    location.href =
+      "login.html";
+
+  }
+
 }
+
+checkAuth();
+
 </script>
 
 <div class="header">
@@ -73,9 +110,18 @@ if(localStorage.getItem("admin")!=="ok"){
 </table>
 
 <script>
-function logout(){
- localStorage.removeItem("admin");
- location.href="login.html";
+async function logout(){
+
+  await fetch(
+    "/api/logout",
+    {
+      method:"POST"
+    }
+  );
+
+  location.href =
+    "login.html";
+
 }
 
 async function caricaDashboard(){
