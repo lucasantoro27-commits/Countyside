@@ -334,7 +334,7 @@ html += `
   ${badge}
 
   <h2>
-    🍔 COMANDA #${o.id}
+  🍔 COMANDA #${ordine.numeroGiornaliero || o.id}
   </h2>
 
   <p>
@@ -450,7 +450,7 @@ html += `
   <div class="ordine">
 
     <h3>
-      ✅ Ordine #${o.id}
+    ✅ Ordine #${ordine.numeroGiornaliero || o.id}
     </h3>
 
         <p>
