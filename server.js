@@ -58,81 +58,16 @@ db.serialize(() => {
 
 });
 
-app.post("/api/login",(req,res)=>{
-
-  const password =
-    req.body.password;
-
-  if(password === "CountrySide2026"){
-
-    req.session.auth = true;
-
-    return res.json({
-      success:true
-    });
-
-  }
-
-  return res.status(401).json({
-    success:false
-  });
-
-});
-
-app.post("/api/logout",(req,res)=>{
-
-  req.session.destroy(()=>{
-
-    res.json({
-      success:true
-    });
-
-  });
-
-});
-
-app.get("/api/check-auth",(req,res)=>{
-
-  res.json({
-    auth: !!req.session.auth
-  });
-
-});
-
-/* NUOVO ORDINE */
-
 app.post("/api/ordini", (req, res) => {
 
-const ordine = {
-  data: new Date().toISOString(),
-  messaggio: req.body.messaggio,
-  totale: req.body.totale || 0,
-  tipo: req.body.tipo || "",
-  tavolo: req.body.tavolo || "",
-  commensali: req.body.commensali || "",
-  carrello: req.body.carrello || {}
-};
-
-  db.run(
+  db.get(
     `
-    INSERT INTO ordini
-    (
-      data,
-      stato,
-      ordine
-    )
-    VALUES
-    (
-      ?,
-      'nuovo',
-      ?
-    )
+    SELECT COUNT(*) as totale
+    FROM ordini
+    WHERE DATE(data)=DATE('now','localtime')
     `,
-    [
-      ordine.data,
-      JSON.stringify(ordine)
-    ],
-    function(err){
+    [],
+    (err,row)=>{
 
       if(err){
 
@@ -142,10 +77,66 @@ const ordine = {
 
       }
 
-      res.json({
-        success:true,
-        id:this.lastID
-      });
+      const numeroGiornaliero =
+        row.totale + 1;
+
+      const ordine = {
+
+        numeroGiornaliero,
+
+        data: new Date().toISOString(),
+
+        messaggio: req.body.messaggio,
+
+        totale: req.body.totale || 0,
+
+        tipo: req.body.tipo || "",
+
+        tavolo: req.body.tavolo || "",
+
+        commensali: req.body.commensali || "",
+
+        carrello: req.body.carrello || {}
+
+      };
+
+      db.run(
+        `
+        INSERT INTO ordini
+        (
+          data,
+          stato,
+          ordine
+        )
+        VALUES
+        (
+          ?,
+          'nuovo',
+          ?
+        )
+        `,
+        [
+          ordine.data,
+          JSON.stringify(ordine)
+        ],
+        function(err){
+
+          if(err){
+
+            return res.status(500).json({
+              errore: err.message
+            });
+
+          }
+
+          res.json({
+            success:true,
+            id:this.lastID,
+            numeroGiornaliero
+          });
+
+        }
+      );
 
     }
   );
