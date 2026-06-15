@@ -206,7 +206,6 @@ app.get("/api/ordini", (req,res)=>{
  SELECT *
     FROM ordini
     WHERE stato <> 'consegnato'
-    AND DATE(data) = DATE('now','localtime')
     ORDER BY id DESC
     `,
     [],
