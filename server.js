@@ -258,7 +258,7 @@ app.put("/api/ordini/:id/stato",auth, (req,res)=>{
 
 });
 
-app.get("/api/statistiche",auth, (req,res)=>{
+app.get("/api/statistiche", (req,res)=>{
 
   db.all(
     `
