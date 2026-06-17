@@ -221,7 +221,7 @@ app.post("/api/ordini", (req, res) => {
 
 /* ELENCO ORDINI */
 
-app.get("/api/ordini", (req,res)=>{
+app.get("/api/ordini",auth, (req,res)=>{
 
   db.all(
     `
@@ -250,7 +250,7 @@ app.get("/api/ordini", (req,res)=>{
 
 /* CAMBIO STATO */
 
-app.put("/api/ordini/:id/stato", (req,res)=>{
+app.put("/api/ordini/:id/stato",auth, (req,res)=>{
 
   db.run(
     `
@@ -279,7 +279,7 @@ app.put("/api/ordini/:id/stato", (req,res)=>{
 
 });
 
-app.get("/api/statistiche", (req,res)=>{
+app.get("/api/statistiche",auth, (req,res)=>{
 
   db.all(
     `
@@ -346,7 +346,7 @@ WHERE DATE(data)=DATE('now','localtime')
 
 });
 
-app.get("/api/prodotti/top", (req,res)=>{
+app.get("/api/prodotti/top",auth, (req,res)=>{
 
   db.all(
     `
@@ -405,14 +405,13 @@ WHERE DATE(data)=DATE('now','localtime')
 
 });
 
-app.get("/api/ordini/storico", (req,res)=>{
+app.get("/api/ordini/storico",auth (req,res)=>{
 
   db.all(
     `
 SELECT *
 FROM ordini
 WHERE stato='consegnato'
-AND DATE(data)=DATE('now','localtime')
 ORDER BY id DESC
     `,
     [],
@@ -431,7 +430,7 @@ ORDER BY id DESC
 
 });
 
-app.get("/api/ordini/:id", (req,res)=>{
+app.get("/api/ordini/:id",auth, (req,res)=>{
 
   db.get(
     `
@@ -455,7 +454,7 @@ app.get("/api/ordini/:id", (req,res)=>{
 
 });
 
-app.get("/api/statistiche/settimana", (req,res)=>{
+app.get("/api/statistiche/settimana",auth, (req,res)=>{
 
   db.all(
     `
@@ -520,7 +519,7 @@ app.get("/api/statistiche/settimana", (req,res)=>{
 
 });
 
-app.get("/api/statistiche/mese", (req,res)=>{
+app.get("/api/statistiche/mese",auth, (req,res)=>{
 
   db.all(
     `
@@ -585,7 +584,7 @@ app.get("/api/statistiche/mese", (req,res)=>{
 
 });
 
-app.get("/api/ordini/tutti", (req,res)=>{
+app.get("/api/ordini/tutti",auth, (req,res)=>{
 
   db.all(
     `
@@ -607,7 +606,7 @@ app.get("/api/ordini/tutti", (req,res)=>{
 
 });
 
-app.get("/api/prodotti/top/settimana", (req,res)=>{
+app.get("/api/prodotti/top/settimana",auth, (req,res)=>{
 
   db.all(
     `
@@ -664,7 +663,7 @@ app.get("/api/prodotti/top/settimana", (req,res)=>{
 
 });
 
-app.get("/api/prodotti/top/mese", (req,res)=>{
+app.get("/api/prodotti/top/mese",auth, (req,res)=>{
 
   db.all(
     `
@@ -721,7 +720,7 @@ app.get("/api/prodotti/top/mese", (req,res)=>{
 
 });
 
-app.get("/api/incassi/giornalieri", (req,res)=>{
+app.get("/api/incassi/giornalieri",auth, (req,res)=>{
 
   db.all(
     `
