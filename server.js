@@ -47,6 +47,28 @@ function auth(req,res,next){
 
 }
 
+app.get("/api/debug",(req,res)=>{
+
+  db.all(
+    `
+    SELECT id,data,stato
+    FROM ordini
+    ORDER BY id DESC
+    `,
+    [],
+    (err,rows)=>{
+
+      if(err){
+        return res.status(500).json(err);
+      }
+
+      res.json(rows);
+
+    }
+  );
+
+});
+
 app.post("/api/login",(req,res)=>{
 
   const password =
