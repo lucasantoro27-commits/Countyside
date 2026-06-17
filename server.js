@@ -585,7 +585,7 @@ app.get("/api/statistiche/mese",auth, (req,res)=>{
 
 });
 
-app.get("/api/ordini/tutti",auth, (req,res)=>{
+app.get("/api/ordini/tutti", (req,res)=>{
 
   db.all(
     `
