@@ -405,7 +405,7 @@ WHERE DATE(data)=DATE('now','localtime')
 
 });
 
-app.get("/api/ordini/storico",auth (req,res)=>{
+app.get("/api/ordini/storico",auth, (req,res)=>{
 
   db.all(
     `
