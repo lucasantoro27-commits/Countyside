@@ -352,7 +352,8 @@ app.get("/api/prodotti/top",auth, (req,res)=>{
     `
 SELECT *
 FROM ordini
-WHERE DATE(data)=DATE('now','localtime')
+ WHERE stato='consegnato'
+  AND DATE(data)=DATE('now','localtime')
     `,
     [],
     (err,rows)=>{
