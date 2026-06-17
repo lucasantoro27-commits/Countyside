@@ -5,6 +5,17 @@ const path = require("path");
 const session = require("express-session");
 
 const app = express();
+const fs = require("fs");
+
+app.get("/api/dbinfo",(req,res)=>{
+
+  res.json({
+    cwd: process.cwd(),
+    dbExists: fs.existsSync("database.db"),
+    dbPath: path.resolve("database.db")
+  });
+
+});
 
 app.use(cors());
 app.use(express.json());
