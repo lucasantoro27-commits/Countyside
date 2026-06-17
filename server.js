@@ -118,6 +118,12 @@ app.get("/api/check-auth",(req,res)=>{
 
 const db =
   new sqlite3.Database("database.db");
+const path = require("path");
+
+console.log(
+  "DATABASE USATO:",
+  path.resolve("database.db")
+);
 
 /* CREAZIONE TABELLA */
 
